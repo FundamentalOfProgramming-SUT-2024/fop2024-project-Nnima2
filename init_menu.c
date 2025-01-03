@@ -1,5 +1,4 @@
-///*
-// #include <stdio.h>
+#include <stdio.h>
 #include <ncurses.h>
 #include <string.h>
 #include <stdlib.h>
@@ -16,7 +15,7 @@ int main(); // main prototype for calling it
 char username[30];
 
 char *fm_choices[] = {
-    "Login(already played)",
+    "Login+Guest",
     "Sign up(new player)",
     "Exit",
 };
@@ -26,6 +25,13 @@ char *rm_choices[] = {
     "Back",
 };
 int rm_choices_count = 3;
+
+char *lm_choices[] = {
+    "Login in as Guest",
+    "Sign in",
+    "Back",
+};
+int lm_choices_count = 3;
 char *rogue_plus_text[] = {
     " _____                                         ",
     "|  __ \\                                    _   ",
@@ -46,6 +52,15 @@ char *Register_text[] = {
     "\\_| \\_| \\___| |___/ |_||___/ \\__| \\___||_|    "};
 int register_text_lines = 6;
 
+char  *login_Text[] = {    
+" _              __ _  _        ",
+"| |            / _` |(_)       ",
+"| |      ___  | (_| | _  _ __  ",
+"| |     / _ \\  \\__, || || '_ \\ ",
+"| |____| (_) |  __/ || || | | |",
+"\\_____/ \\___/  |___/ |_||_| |_|"
+
+};int login_text_lines = 6;
 int Setup_First_Menu() // returns 1 if already has an acount -->(login =1,sign up = 0)
 {
     if (getmaxx(stdscr) < 80 || getmaxy(stdscr) < 33)
@@ -144,7 +159,6 @@ int Setup_Register_Page()
         getch();
         return -1;
     }
-
 #pragma region Reg_Lables
     initscr();
     noecho();
@@ -297,9 +311,9 @@ int Setup_Register_Page()
                 //
             }
             break;
+            #pragma region validation
             case 4: // validating and filing
             {
-#pragma region validation
                 // is username valid?
                 int password_case = Is_Password_Valid(password);
                 char user_file_name[256];
@@ -353,9 +367,11 @@ int Setup_Register_Page()
                     return 1;
                 }
             }
+            #pragma endregion
             break;
             case 5: // back
             {
+                strcpy(username,name);
                 wclear(win);
                 clear();
                 main();
@@ -655,6 +671,363 @@ int Setup_Register_Page()
 
 int Setup_Login_Page()
 {
+    if (getmaxx(stdscr) < 80 || getmaxy(stdscr) < 33)
+    {
+        mvprintw(10, 10, "pls zomeout and resize your terminal \nthere is not enough space for elements in this page.\n and make sur page is runnig on fullscreen");
+        getch();
+        return -1;
+    }
+
+#pragma region Log_Lables
+    initscr();
+    noecho();
+    cbreak();
+    keypad(stdscr, TRUE);
+    int WIN_WIDTH = 60, WIN_HEIGH = 18;
+    WINDOW *win = newwin(WIN_HEIGH, WIN_WIDTH, (getmaxy(stdscr) - WIN_HEIGH) / 2 + 4, (getmaxx(stdscr) - WIN_WIDTH) / 2);
+    keypad(win, TRUE);
+    box(win, 0, 0);
+    refresh();
+    wrefresh(win);
+
+    char name_massage[] = "Enter Your Username:";
+    mvwprintw(win, 3, (WIN_WIDTH - (strlen(name_massage))) / 2, "%s", name_massage);
+    wattr_on(win, A_UNDERLINE, NULL);
+    char name[] = {"                        "}; // len = 24
+    int name_maxlen = 24;
+    int name_textbox_startX = (WIN_WIDTH - name_maxlen) / 2;
+    mvwprintw(win, 5, name_textbox_startX, "%s", name); // name textbox
+    wattr_off(win, A_UNDERLINE, NULL);
+    // name labels line (1-3)
+
+    char password_massage[] = "Enter Your Password:";
+    mvwprintw(win, 7, (WIN_WIDTH - (strlen(password_massage))) / 2, "%s", password_massage);
+    wattr_on(win, A_UNDERLINE, NULL);
+    char password[] = {"                                        "}; // len =40
+    int password_maxlen = 40;
+    int password_textbox_startX = (WIN_WIDTH - password_maxlen) / 2; // password text_box
+    mvwprintw(win, 9, password_textbox_startX, "%s", password);     // password textbox
+    wattr_off(win, A_UNDERLINE, NULL);
+    // password labels line (5-7)
+
+    wrefresh(win);
+    int lm_top_margin = 11; // register menu
+    Print_Menu(win, lm_choices, lm_choices_count, 0, lm_top_margin, CENTER_ALIGNED, 0, 0);
+    // make text box as an underlined empty space
+    // make it behave as menu
+    // focus algorithm
+    int x = name_textbox_startX, y = 5;
+    wmove(win, y, x);
+    int focus = 0;
+    int highligh = 1;
+    int ch;
+    int name_x = name_textbox_startX;
+    int password_x = password_textbox_startX;
+
+    int name_str_len = 0;
+    int password_str_len = 0;
+    int email_str_len = 0;
+
+#pragma endregion
+
+    Print_Ascci_Art(stdscr, login_Text, login_text_lines, TOP_ALIGNED, CENTER_ALIGNED, 2, 0); // title
+
+    name[0]='\0';
+    password[0]='\0';
+    int submited = 0;
+    while (!submited)
+    {
+        ch = wgetch(win);
+        /*cleaning mess
+        int temp_x,temp_y;
+        getyx(win,temp_y,temp_x);
+        char *rm_error1[] = {"                         "};
+        Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
+        Print_Menu(win, rm_guides, 6,0, 19, CENTER_ALIGNED, 0, 0);
+        wmove(win,temp_y,temp_x);
+        */
+
+
+        if (ch == '\n') // enter-acctions
+        {
+            switch (focus)
+            {
+            case 0: // go to next textbox
+            {
+                highligh = 0;
+                focus = 1;
+                Print_Menu(win, lm_choices, lm_choices_count, highligh, lm_top_margin, CENTER_ALIGNED, 0, 0);
+                wmove(win, 7, password_x);
+            }
+            break;
+            case 1: // go to next textbox
+            {
+                highligh = 1;
+                focus = 2;
+                Print_Menu(win, lm_choices, lm_choices_count, highligh, lm_top_margin, CENTER_ALIGNED, 0, 0);
+            }
+            break;
+            case 2: // config as a guest
+            {
+                highligh = 2;
+                focus = 3;
+                Print_Menu(win, lm_choices, lm_choices_count, highligh, lm_top_margin, CENTER_ALIGNED, 0, 0);
+            }
+            break;
+            case 3: // validating and filing
+            {
+                #pragma region log_validation
+                #pragma region i_was_here
+                char filename[256];
+                snprintf(filename,256,"users/%s.txt",name);
+
+                if(file_exists(filename))
+                {
+
+                }
+                #pragma endregion
+            }
+            break;
+            case 4: 
+            {
+                strcpy(username,name);
+                wclear(win);
+                clear();
+                main();
+                return -1;
+            }
+            break;
+            }
+        }
+        else if (ch == 27) // escape
+        {
+            wclear(win);
+            clear();
+            main();
+            return -1;
+        }
+        else if (ch == KEY_DOWN || ch == KEY_UP || ch == 9 /*Tab*/) // switch betweencontrols
+        {
+            if (ch == KEY_DOWN || ch == 9) // tab
+            {
+                focus = (focus + 1) % 5;
+            }
+            else if (ch == KEY_UP)
+            {
+                focus = (focus - 1 + 5) % 5;
+            }
+            // mvprintw(10, 10, "%d", focus);
+
+            switch (focus)
+            {
+            case 0:
+            {
+                highligh = 0;
+                Print_Menu(win, lm_choices, lm_choices_count, highligh, lm_top_margin, CENTER_ALIGNED, 0, 0);
+                wmove(win, 5, name_x);
+            }
+            break;
+            case 1:
+            {
+                highligh = 0;
+                Print_Menu(win, lm_choices, lm_choices_count, highligh, lm_top_margin, CENTER_ALIGNED, 0, 0);
+                wmove(win, 9, password_x);
+            }
+            break;
+            case 2:
+            {
+                highligh = 1;
+                Print_Menu(win, lm_choices, lm_choices_count, highligh, lm_top_margin, CENTER_ALIGNED, 0, 0);
+            }
+            break;
+            case 3:
+            {
+                highligh = 2;
+                Print_Menu(win, lm_choices, lm_choices_count, highligh, lm_top_margin, CENTER_ALIGNED, 0, 0);
+            }
+            break;
+            case 4:
+            {
+                highligh = 3;
+                Print_Menu(win, lm_choices, lm_choices_count, highligh, lm_top_margin, CENTER_ALIGNED, 0, 0);
+            }
+            break;
+            }
+        }
+        else if (ch == KEY_BACKSPACE) // remove a char
+        {
+            switch (focus)
+            {
+            case 0:
+            {
+                y = 5;
+                if (name_textbox_startX < name_x)
+                {
+                    wattron(win, A_UNDERLINE);
+                    int space_holder_len = 24 - (name_x - name_textbox_startX);
+                    char space_holder[space_holder_len + 1];
+                    space_holder[space_holder_len] = '\0';
+                    memset(space_holder, ' ', space_holder_len);
+
+                    mvwprintw(win, y, name_x - 1, "%s", space_holder);
+                    wmove(win, y, --name_x);
+                    name[name_x - name_textbox_startX] = '\0';
+                    wattroff(win, A_UNDERLINE);
+                    name_str_len = name_x - name_textbox_startX;
+                }
+                break;
+            }
+            break;
+            case 1:
+            {
+                y = 9;
+                wmove(win, 9, password_x);
+                if (password_textbox_startX < password_x)
+                {
+                    wattron(win, A_UNDERLINE);
+                    int space_holder_len = 40 - (password_x - password_textbox_startX);
+                    char space_holder[space_holder_len + 1];
+                    memset(space_holder, ' ', space_holder_len);
+                    space_holder[space_holder_len] = '\0';
+                    mvwprintw(win, y, password_x - 1, "%s", space_holder);
+                    wmove(win, y, --password_x);
+                    password[password_x - password_textbox_startX] = '\0';
+                    wattroff(win, A_UNDERLINE);
+                    password_str_len = password_x - password_textbox_startX;
+                }
+            }
+            break;
+            case 2:
+            case 3:
+            case 4:
+            {
+                // char *rm_error1[] = {"Invalid input for buttons"};
+                // Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
+            }
+            break;
+            }
+        }
+        else if (ch == KEY_LEFT) // move back
+        {
+            switch (focus)
+            {
+            case 0:
+            {
+                y = 5;
+                wmove(win, 5, name_x);
+                if (name_textbox_startX < name_x)
+                {
+                    wmove(win, y, --name_x);
+                }
+            }
+            break;
+            case 1:
+            {
+                y = 9;
+                wmove(win, 9, password_x);
+                if (password_textbox_startX < password_x)
+                {
+                    wmove(win, y, --password_x);
+                }
+            }
+            break;
+            case 2:
+            case 3:
+            case 4:
+            {
+                //char *rm_error1[] = {"Invalid input for buttons"};
+                //Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
+            }
+            break;
+            }
+        }
+        else if (ch == KEY_RIGHT) // move forward
+        {
+            switch (focus)
+            {
+            case 0:
+            {
+                y = 5;
+                wmove(win, 5, name_x);
+                if (name_textbox_startX + 23 > name_x && name_x < name_str_len + name_textbox_startX)
+                {
+                    wmove(win, y, ++name_x);
+                }
+            }
+            break;
+            case 1:
+            {
+                y = 9;
+                wmove(win, 9, password_x);
+                if (password_textbox_startX + 39 > password_x && password_x < password_str_len + password_textbox_startX)
+                {
+                    wmove(win, y, ++password_x);
+                }
+            }
+            break;
+            case 2:
+            case 3:
+            case 4:
+            {
+                //char *rm_error1[] = {"Invalid input for buttons"};
+                //Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
+            }
+            break;
+            }
+        }
+        else // add char
+        {
+            switch (focus)
+            {
+            case 0:
+            {
+                y=5;
+                if (name_x < name_textbox_startX + 23 && ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || (ch == '_')))
+                {
+                    wattron(win, A_UNDERLINE);
+                    name[name_x - name_textbox_startX] = ch;
+                    waddch(win, ch);
+                    wmove(win, y, name_x + 1);
+                    name_x++;
+                    name[name_x - name_textbox_startX] = '\0';
+                    wattroff(win, A_UNDERLINE);
+                    name_str_len++;
+                }
+                wmove(win, 5, name_x);
+            }
+            break;
+            case 1:
+            {
+                y = 9;
+                if (password_x < password_textbox_startX + 39 && ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || (ch == '_') || ispunct(ch)))
+                {
+                    wattron(win, A_UNDERLINE);
+                    password[password_x - password_textbox_startX] = ch;
+                    waddch(win, ch);
+                    wmove(win, y, password_x + 1);
+                    password_x++;
+                    password[password_x - password_textbox_startX] = '\0';
+                    wattroff(win, A_UNDERLINE);
+                    password_str_len++;
+                }
+                wmove(win, 9, password_x);
+            }
+            break;
+            case 2:
+            case 3:
+            case 4:
+            {
+                //char *rm_error1[] = {"Invalid input for buttons"};
+                //Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
+            }
+            break;
+            }
+        }
+
+        wrefresh(win);
+    }
+    delwin(win);
+    endwin();
 }
 
 int main()
@@ -676,7 +1049,6 @@ int main()
     {
         Setup_Register_Page();
     }
-    getch();
     endwin();
     return 0;
 }
