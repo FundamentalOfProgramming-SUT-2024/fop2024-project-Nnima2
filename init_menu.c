@@ -303,7 +303,7 @@ int Setup_Register_Page()
                 // is username valid?
                 int password_case = Is_Password_Valid(password);
                 char user_file_name[256];
-                snprintf(user_file_name, sizeof(user_file_name), "users\\%s.txt", name);
+                snprintf(user_file_name, sizeof(user_file_name), "users/%s.txt", name);
                 if(!file_exists(user_file_name))
                 {
                     mvprintw(0,(getmaxx(stdscr)-24)/2 , "%s", "                       ");
