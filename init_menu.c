@@ -15,6 +15,8 @@
 #define MAX_USER_PASS 100
 
 int Init_Menus();
+
+char *  username_ptr;
 char final_username[MAX_USER_PASS];
 
 char *fm_choices[] = {
@@ -387,7 +389,7 @@ int Setup_Register_Page()
                 strcpy(final_username, name);
                 wclear(win);
                 clear();
-                Init_Menus();
+                Init_Menus(username_ptr);
                 return 0;//back normally
             }
             break;
@@ -397,7 +399,7 @@ int Setup_Register_Page()
         {
             wclear(win);
             clear();
-            Init_Menus();
+            Init_Menus(username_ptr);
             return 0;//back normally
         }
         else if (ch == KEY_DOWN || ch == KEY_UP || ch == 9 /*Tab*/) // switch betweencontrols
@@ -866,7 +868,7 @@ int Setup_Login_Page()// return 2 for guest / 1 for user / -1 for error 0 for ex
                 strcpy(final_username, name);
                 wclear(win);
                 clear();
-                Init_Menus();
+                Init_Menus(username_ptr);
                 return 0;
             }
             break;
@@ -876,7 +878,7 @@ int Setup_Login_Page()// return 2 for guest / 1 for user / -1 for error 0 for ex
         {
             wclear(win);
             clear();
-            Init_Menus();
+            Init_Menus(username_ptr);
             return 0;
         }
         else if (ch == KEY_DOWN || ch == KEY_UP || ch == 9 /*Tab*/) // switch betweencontrols
@@ -1103,8 +1105,9 @@ int Setup_Login_Page()// return 2 for guest / 1 for user / -1 for error 0 for ex
     endwin();
 }
 
-int Init_Menus()
+int Init_Menus(char * username)
 {
+    username_ptr = username;
     create_users_folder();
     initscr();
     int has_acount = Setup_First_Menu();
@@ -1125,10 +1128,11 @@ int Init_Menus()
             endwin();
             exit(0);
         }
-        else if(login == 1|| login == 2)
+        else if(login == 1||login == 2)
         {
             int guest = login -1;
             endwin();
+            strcpy(username,final_username);
             return 0;
         }
     }
@@ -1144,6 +1148,7 @@ int Init_Menus()
         {
             int guest = 0;
             clear();
+            strcpy(username,final_username);
             return 0;
         }
     }
