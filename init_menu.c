@@ -6,13 +6,16 @@
 #include "file_funcs.h"
 #include "ascii_graphics.h"
 #include "str_processing.h"
+#include "init_menus.h"
 
 #define FM_CHOICES 3  // first menu choices
 #define FMW_WIDTH 65  // first menu window
 #define FMW_HEIGHT 20 // first menu window
+#define MAX_FILE_LINE 256
+#define MAX_USER_PASS 100
 
-int main(); // main prototype for calling it
-char username[30];
+int Init_Menus();
+char final_username[MAX_USER_PASS];
 
 char *fm_choices[] = {
     "Login+Guest",
@@ -52,15 +55,16 @@ char *Register_text[] = {
     "\\_| \\_| \\___| |___/ |_||___/ \\__| \\___||_|    "};
 int register_text_lines = 6;
 
-char  *login_Text[] = {    
-" _              __ _  _        ",
-"| |            / _` |(_)       ",
-"| |      ___  | (_| | _  _ __  ",
-"| |     / _ \\  \\__, || || '_ \\ ",
-"| |____| (_) |  __/ || || | | |",
-"\\_____/ \\___/  |___/ |_||_| |_|"
+char *login_Text[] = {
+    " _              __ _  _        ",
+    "| |            / _` |(_)       ",
+    "| |      ___  | (_| | _  _ __  ",
+    "| |     / _ \\  \\__, || || '_ \\ ",
+    "| |____| (_) |  __/ || || | | |",
+    "\\_____/ \\___/  |___/ |_||_| |_|"
 
-};int login_text_lines = 6;
+};
+int login_text_lines = 6;
 int Setup_First_Menu() // returns 1 if already has an acount -->(login =1,sign up = 0)
 {
     if (getmaxx(stdscr) < 80 || getmaxy(stdscr) < 33)
@@ -151,13 +155,22 @@ int Setup_First_Menu() // returns 1 if already has an acount -->(login =1,sign u
     }
 }
 
+void Print_Error1(char *error_text)
+{
+    WINDOW *error_win = newwin(4, getmaxx(stdscr) - 8, getmaxy(stdscr) - 4, 5);
+    box(error_win, 0, 0);
+    mvwprintw(error_win, 2, 1, "%s", error_text);
+    wrefresh(error_win);
+    refresh();
+}
+
 int Setup_Register_Page()
 {
     if (getmaxx(stdscr) < 80 || getmaxy(stdscr) < 33)
     {
         mvprintw(10, 10, "pls zomeout and resize your terminal \nthere is not enough space for elements in this page.\n and make sur page is runnig on fullscreen");
         getch();
-        return -1;
+        return -1;//error
     }
 #pragma region Reg_Lables
     initscr();
@@ -239,9 +252,9 @@ int Setup_Register_Page()
 
     Print_Ascci_Art(stdscr, Register_text, register_text_lines, TOP_ALIGNED, CENTER_ALIGNED, 0, 0); // title
 
-    name[0]='\0';
-    email[0]='\0';
-    password[0]='\0';
+    name[0] = '\0';
+    email[0] = '\0';
+    password[0] = '\0';
     int submited = 0;
     while (!submited)
     {
@@ -256,10 +269,8 @@ int Setup_Register_Page()
         wmove(win,temp_y,temp_x);
         */
 
-
         if (ch == '\n') // enter-acctions
         {
-            
 
             switch (focus)
             {
@@ -311,71 +322,73 @@ int Setup_Register_Page()
                 //
             }
             break;
-            #pragma region validation
+#pragma region validation
             case 4: // validating and filing
             {
                 // is username valid?
                 int password_case = Is_Password_Valid(password);
                 char user_file_name[256];
                 snprintf(user_file_name, sizeof(user_file_name), "users/%s.txt", name);
-                if(!file_exists(user_file_name))
+                if (!file_exists(user_file_name))
                 {
-                    mvprintw(0,(getmaxx(stdscr)-24)/2 , "%s", "                       ");
+                    mvprintw(0, (getmaxx(stdscr) - 24) / 2, "%s", "                       ");
                     refresh();
                 }
                 if (strlen(name) < 3)
                 {
-                    Print_Menu(win, rm_guides, 6,1, 19, CENTER_ALIGNED, 0, 0);
+                    Print_Menu(win, rm_guides, 6, 1, 19, CENTER_ALIGNED, 0, 0);
                     focus = 0;
-                    wmove(win,3,name_x);
+                    wmove(win, 3, name_x);
                 }
                 // is usernmae unique?
                 else if (file_exists(user_file_name))
                 {
                     attron(A_REVERSE);
-                    mvprintw(0,(getmaxx(stdscr)-24)/2 , "%s", "username already exists");
+                    mvprintw(0, (getmaxx(stdscr) - 24) / 2, "%s", "username already exists");
                     refresh();
                     attroff(A_REVERSE);
                     focus = 0;
-                    wmove(win,3,name_x);
+                    wmove(win, 3, name_x);
                 }
                 // is email valid?
                 else if (!Is_Email_Valid(email))
                 {
-                    Print_Menu(win, rm_guides, 6,2, 19,CENTER_ALIGNED, 0, 0);
+                    Print_Menu(win, rm_guides, 6, 2, 19, CENTER_ALIGNED, 0, 0);
                     focus = 1;
-                    wmove(win,7,email_x);
+                    wmove(win, 7, email_x);
                 }
                 // is password valid?
-                else if (password_case !=1)
+                else if (password_case != 1)
                 {
-                    if(password_case==0)
-                        Print_Menu(win, rm_guides, 6,4, 19, CENTER_ALIGNED, 0, 0);
-                    if(password_case==-1)
-                    Print_Menu(win, rm_guides, 6,5, 19, CENTER_ALIGNED, 0, 0);
-                    if(password_case==-2)
-                        Print_Menu(win, rm_guides, 6,6, 19, CENTER_ALIGNED, 0, 0);
+                    if (password_case == 0)
+                        Print_Menu(win, rm_guides, 6, 4, 19, CENTER_ALIGNED, 0, 0);
+                    if (password_case == -1)
+                        Print_Menu(win, rm_guides, 6, 5, 19, CENTER_ALIGNED, 0, 0);
+                    if (password_case == -2)
+                        Print_Menu(win, rm_guides, 6, 6, 19, CENTER_ALIGNED, 0, 0);
                     focus = 2;
-                    wmove(win,11,password_x);
+                    wmove(win, 11, password_x);
                 }
                 else
                 {
-                    new_user_write_file(name,email,password);
+                    new_user_write_file(name, email, password);
+                    Print_Error1("Registration Successfull,prees any key to go to next page");
+                    getch();
                     delwin(win);
                     clear();
                     refresh();
-                    return 1;
+                    return 1;//acount created
                 }
             }
-            #pragma endregion
+#pragma endregion
             break;
             case 5: // back
             {
-                strcpy(username,name);
+                strcpy(final_username, name);
                 wclear(win);
                 clear();
-                main();
-                return -1;
+                Init_Menus();
+                return 0;//back normally
             }
             break;
             }
@@ -384,8 +397,8 @@ int Setup_Register_Page()
         {
             wclear(win);
             clear();
-            main();
-            return -1;
+            Init_Menus();
+            return 0;//back normally
         }
         else if (ch == KEY_DOWN || ch == KEY_UP || ch == 9 /*Tab*/) // switch betweencontrols
         {
@@ -550,8 +563,8 @@ int Setup_Register_Page()
             case 4:
             case 5:
             {
-                //char *rm_error1[] = {"Invalid input for buttons"};
-                //Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
+                // char *rm_error1[] = {"Invalid input for buttons"};
+                // Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
             }
             break;
             }
@@ -592,8 +605,8 @@ int Setup_Register_Page()
             case 4:
             case 5:
             {
-                //char *rm_error1[] = {"Invalid input for buttons"};
-                //Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
+                // char *rm_error1[] = {"Invalid input for buttons"};
+                // Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
             }
             break;
             }
@@ -656,8 +669,8 @@ int Setup_Register_Page()
             case 4:
             case 5:
             {
-                //char *rm_error1[] = {"Invalid input for buttons"};
-                //Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
+                // char *rm_error1[] = {"Invalid input for buttons"};
+                // Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
             }
             break;
             }
@@ -669,7 +682,7 @@ int Setup_Register_Page()
     endwin();
 }
 
-int Setup_Login_Page()
+int Setup_Login_Page()// return 2 for guest / 1 for user / -1 for error 0 for exit normally
 {
     if (getmaxx(stdscr) < 80 || getmaxy(stdscr) < 33)
     {
@@ -706,7 +719,7 @@ int Setup_Login_Page()
     char password[] = {"                                        "}; // len =40
     int password_maxlen = 40;
     int password_textbox_startX = (WIN_WIDTH - password_maxlen) / 2; // password text_box
-    mvwprintw(win, 9, password_textbox_startX, "%s", password);     // password textbox
+    mvwprintw(win, 9, password_textbox_startX, "%s", password);      // password textbox
     wattr_off(win, A_UNDERLINE, NULL);
     // password labels line (5-7)
 
@@ -727,13 +740,12 @@ int Setup_Login_Page()
     int name_str_len = 0;
     int password_str_len = 0;
     int email_str_len = 0;
+    Print_Ascci_Art(stdscr, login_Text, login_text_lines, TOP_ALIGNED, CENTER_ALIGNED, 2, 0); // title
 
 #pragma endregion
 
-    Print_Ascci_Art(stdscr, login_Text, login_text_lines, TOP_ALIGNED, CENTER_ALIGNED, 2, 0); // title
-
-    name[0]='\0';
-    password[0]='\0';
+    name[0] = '\0';
+    password[0] = '\0';
     int submited = 0;
     while (!submited)
     {
@@ -746,8 +758,6 @@ int Setup_Login_Page()
         Print_Menu(win, rm_guides, 6,0, 19, CENTER_ALIGNED, 0, 0);
         wmove(win,temp_y,temp_x);
         */
-
-
         if (ch == '\n') // enter-acctions
         {
             switch (focus)
@@ -757,7 +767,7 @@ int Setup_Login_Page()
                 highligh = 0;
                 focus = 1;
                 Print_Menu(win, lm_choices, lm_choices_count, highligh, lm_top_margin, CENTER_ALIGNED, 0, 0);
-                wmove(win, 7, password_x);
+                wmove(win, 9, password_x);
             }
             break;
             case 1: // go to next textbox
@@ -769,32 +779,95 @@ int Setup_Login_Page()
             break;
             case 2: // config as a guest
             {
-                highligh = 2;
-                focus = 3;
-                Print_Menu(win, lm_choices, lm_choices_count, highligh, lm_top_margin, CENTER_ALIGNED, 0, 0);
+                if (strlen(name) == 0)
+                {
+                    Print_Error1("         pls fill the text boxes");
+                }
+                else
+                {
+                    char filename[MAX_FILE_LINE];
+                    snprintf(filename, MAX_FILE_LINE, "users/Guest_%s.txt", name);
+
+                    if (file_exists(filename))
+                    {
+                        Print_Error1("please choose another username");
+                        refresh();
+                    }
+                    else
+                    {
+
+                        sprintf(final_username,"Guest_%s",name);
+                        new_guest_write_file(name);
+                        Print_Error1("Registration Successfull,prees any key to go to next page");
+                        getch();
+                        delwin(win);
+                        clear();
+                        refresh();
+                        return 2;
+                    }
+                }
             }
             break;
             case 3: // validating and filing
             {
-                #pragma region log_validation
-                #pragma region i_was_here
-                char filename[256];
-                snprintf(filename,256,"users/%s.txt",name);
-
-                if(file_exists(filename))
+                if (strlen(name) == 0 || strlen(password) == 0)
                 {
-
+                    Print_Error1("         pls fill the text boxes");
+                    refresh();
                 }
-                #pragma endregion
+                else
+                {
+#pragma region login validation
+
+                    char filename[MAX_FILE_LINE];
+                    snprintf(filename, MAX_FILE_LINE, "users/%s.txt", name);
+
+                    if (file_exists(filename))
+                    {
+                        FILE *user_file = fopen(filename, "r");
+                        char line[MAX_FILE_LINE];
+                        char real_password[MAX_USER_PASS];
+                        fgets(line, MAX_FILE_LINE, user_file);
+                        fgets(line, MAX_FILE_LINE, user_file);
+                        fgets(line, MAX_FILE_LINE, user_file);
+                        char *fptr = strchr(line, ':');
+                        fptr++;
+                        strncpy(real_password, fptr, MAX_USER_PASS);
+                        real_password[strcspn(real_password, "\n")] = '\0';
+                        if (strcmp(real_password, password) == 0)
+                        {
+                            strcpy(final_username, name);
+                            Print_Error1("Login Successfull.Press anykey to go to next page;");
+                            getch();
+                            delwin(win);
+                            clear();
+                            refresh();
+                            return 1;
+                        }
+                        else
+                        {
+                            Print_Error1("Password Wrong Try again");
+                        }
+                        refresh();
+                    }
+                    else
+                    {
+                        char error414[MAX_FILE_LINE];
+                        sprintf(error414, "Username <%s> is not found...", name);
+                        Print_Error1(error414);
+                        refresh();
+                    }
+#pragma endregion
+                }
             }
             break;
-            case 4: 
+            case 4:
             {
-                strcpy(username,name);
+                strcpy(final_username, name);
                 wclear(win);
                 clear();
-                main();
-                return -1;
+                Init_Menus();
+                return 0;
             }
             break;
             }
@@ -803,8 +876,8 @@ int Setup_Login_Page()
         {
             wclear(win);
             clear();
-            main();
-            return -1;
+            Init_Menus();
+            return 0;
         }
         else if (ch == KEY_DOWN || ch == KEY_UP || ch == 9 /*Tab*/) // switch betweencontrols
         {
@@ -935,8 +1008,8 @@ int Setup_Login_Page()
             case 3:
             case 4:
             {
-                //char *rm_error1[] = {"Invalid input for buttons"};
-                //Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
+                // char *rm_error1[] = {"Invalid input for buttons"};
+                // Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
             }
             break;
             }
@@ -969,8 +1042,8 @@ int Setup_Login_Page()
             case 3:
             case 4:
             {
-                //char *rm_error1[] = {"Invalid input for buttons"};
-                //Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
+                // char *rm_error1[] = {"Invalid input for buttons"};
+                // Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
             }
             break;
             }
@@ -981,7 +1054,7 @@ int Setup_Login_Page()
             {
             case 0:
             {
-                y=5;
+                y = 5;
                 if (name_x < name_textbox_startX + 23 && ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || (ch == '_')))
                 {
                     wattron(win, A_UNDERLINE);
@@ -1017,8 +1090,8 @@ int Setup_Login_Page()
             case 3:
             case 4:
             {
-                //char *rm_error1[] = {"Invalid input for buttons"};
-                //Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
+                // char *rm_error1[] = {"Invalid input for buttons"};
+                // Print_Ascci_Art(stdscr, rm_error1, 1, DOWN_ALIGNED, LEFT_ALIGNED, 1, 1);
             }
             break;
             }
@@ -1030,25 +1103,52 @@ int Setup_Login_Page()
     endwin();
 }
 
-int main()
+int Init_Menus()
 {
     create_users_folder();
     initscr();
     int has_acount = Setup_First_Menu();
     clear();
+
     if (has_acount == -1)
     {
         endwin();
-        return 0;
+        exit(0);
     }
     else if (has_acount)
     {
-        Setup_Login_Page();
+        int login = Setup_Login_Page(); // 2==guest 1 = user 0 = not logined
+        clear();
+        refresh();
+        if(login == -1||login == 0)
+        {
+            endwin();
+            exit(0);
+        }
+        else if(login == 1|| login == 2)
+        {
+            int guest = login -1;
+            endwin();
+            return 0;
+        }
     }
     else
     {
-        Setup_Register_Page();
+        int account_made = Setup_Register_Page();
+        if(account_made ==0 || account_made == -1)
+        {
+            endwin();
+            exit(0);
+        }
+        else
+        {
+            int guest = 0;
+            clear();
+            return 0;
+        }
     }
+
+    clear();
     endwin();
     return 0;
 }

@@ -37,3 +37,17 @@ void new_user_write_file(char*name,char*email,char*pass)//write file
     fprintf(file,"Name:%s\nEmail:%s\nPassword:%s\n", name, email, pass);
     fclose(file);
 }
+
+void new_guest_write_file(char*name)//write file
+{
+    FILE *file;
+    char filename[256];
+    snprintf(filename,256,"users/Guest_%s.txt",name);
+    file = fopen(filename, "w");
+    if (file == NULL) {
+        perror("Error creating user file");
+        return;
+    }
+    fprintf(file,"Name:%s\n", name);
+    fclose(file);
+}
