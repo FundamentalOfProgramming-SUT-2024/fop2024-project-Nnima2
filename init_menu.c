@@ -7,37 +7,22 @@
 #include "ascii_graphics.h"
 #include "str_processing.h"
 #include "init_menus.h"
+#include "global_vars.h"
 
 #define FM_CHOICES 3  // first menu choices
 #define FMW_WIDTH 65  // first menu window
 #define FMW_HEIGHT 20 // first menu window
-#define MAX_FILE_LINE 256
-#define MAX_USER_PASS 100
 
 int Init_Menus();
 
-char *  username_ptr;
 char final_username[MAX_USER_PASS];
 
-char *fm_choices[] = {
-    "Login+Guest",
-    "Sign up(new player)",
-    "Exit",
-};
-char *rm_choices[] = {
-    "Random Password",
-    "Submit",
-    "Back",
-};
-int rm_choices_count = 3;
 
-char *lm_choices[] = {
-    "Login in as Guest",
-    "Sign in",
-    "Back",
-};
-int lm_choices_count = 3;
-char *rogue_plus_text[] = {
+
+
+int Setup_First_Menu() // returns 1 if already has an acount -->(login =1,sign up = 0)
+{
+    char *rogue_plus_text[] = {
     " _____                                         ",
     "|  __ \\                                    _   ",
     "| |__) |   ___     __ _   _   _    ___   _| |_ ",
@@ -46,29 +31,14 @@ char *rogue_plus_text[] = {
     "|_|  \\_\\  \\___/   \\__, |  \\__,_|  \\___|        ",
     "                   __/ |                       ",
     "                  |___/                        "};
-int rogue_plus_text_lines = 8;
+    int rogue_plus_text_lines = 8;
 
-char *Register_text[] = {
-    "______         __ _  _       _                ",
-    "| ___ \\       / _` |(_)     | |               ",
-    "| |_/ /  ___ | (_| | _  ___ | |_   ___  _ __  ",
-    "|    /  / _ \\ \\__, || |/ __|| __| / _ \\| '__| ",
-    "| |\\ \\ |  __/  __/ || |\\__ \\| |_ |  __/| |    ",
-    "\\_| \\_| \\___| |___/ |_||___/ \\__| \\___||_|    "};
-int register_text_lines = 6;
+    char *fm_choices[] = {
+    "Login+Guest",
+    "Sign up(new player)",
+    "Exit",
+    };
 
-char *login_Text[] = {
-    " _              __ _  _        ",
-    "| |            / _` |(_)       ",
-    "| |      ___  | (_| | _  _ __  ",
-    "| |     / _ \\  \\__, || || '_ \\ ",
-    "| |____| (_) |  __/ || || | | |",
-    "\\_____/ \\___/  |___/ |_||_| |_|"
-
-};
-int login_text_lines = 6;
-int Setup_First_Menu() // returns 1 if already has an acount -->(login =1,sign up = 0)
-{
     if (getmaxx(stdscr) < 80 || getmaxy(stdscr) < 33)
     {
         mvprintw(10, 10, "pls zomeout and resize your terminal \nthere is not enough space for elements in this page.\n and make sur page is runnig on fullscreen");
@@ -175,6 +145,23 @@ int Setup_Register_Page()
         return -1;//error
     }
 #pragma region Reg_Lables
+
+    char *Register_text[] = {
+    "______         __ _  _       _                ",
+    "| ___ \\       / _` |(_)     | |               ",
+    "| |_/ /  ___ | (_| | _  ___ | |_   ___  _ __  ",
+    "|    /  / _ \\ \\__, || |/ __|| __| / _ \\| '__| ",
+    "| |\\ \\ |  __/  __/ || |\\__ \\| |_ |  __/| |    ",
+    "\\_| \\_| \\___| |___/ |_||___/ \\__| \\___||_|    "};
+    int register_text_lines = 6;
+
+    char *rm_choices[] = {
+    "Random Password",
+    "Submit",
+    "Back",
+    };
+    int rm_choices_count = 3;
+
     initscr();
     noecho();
     cbreak();
@@ -694,6 +681,23 @@ int Setup_Login_Page()// return 2 for guest / 1 for user / -1 for error 0 for ex
     }
 
 #pragma region Log_Lables
+    char *lm_choices[] = {
+    "Login in as Guest",
+    "Sign in",
+    "Back",
+    };
+    int lm_choices_count = 3;
+    char *login_Text[] = {
+    " _              __ _  _        ",
+    "| |            / _` |(_)       ",
+    "| |      ___  | (_| | _  _ __  ",
+    "| |     / _ \\  \\__, || || '_ \\ ",
+    "| |____| (_) |  __/ || || | | |",
+    "\\_____/ \\___/  |___/ |_||_| |_|"
+
+    };
+    int login_text_lines = 6;
+
     initscr();
     noecho();
     cbreak();
@@ -1105,7 +1109,7 @@ int Setup_Login_Page()// return 2 for guest / 1 for user / -1 for error 0 for ex
     endwin();
 }
 
-int Init_Menus(char * username)
+int Init_Menus()
 {
     username_ptr = username;
     create_users_folder();
@@ -1116,7 +1120,7 @@ int Init_Menus(char * username)
     if (has_acount == -1)
     {
         endwin();
-        exit(0);
+        Exit_Program(1,"Error acourd in start menu");
     }
     else if (has_acount)
     {
@@ -1126,7 +1130,7 @@ int Init_Menus(char * username)
         if(login == -1||login == 0)
         {
             endwin();
-            exit(0);
+            Exit_Program(1,"Login Failed");
         }
         else if(login == 1||login == 2)
         {
@@ -1142,7 +1146,7 @@ int Init_Menus(char * username)
         if(account_made ==0 || account_made == -1)
         {
             endwin();
-            exit(0);
+            Exit_Program(1,"Error ecoured in making acount");
         }
         else
         {

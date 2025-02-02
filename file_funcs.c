@@ -1,5 +1,19 @@
+#include <ncurses.h>
 #include "file_funcs.h"
-
+    void Exit_Program(int code,char * massege)
+    {
+        endwin();
+        if(code ==0)
+        {
+            printf("program exit with code %d");
+        }
+        else
+        {
+            printf("program exit with code %d\nmassege%s",code,massege);
+        }
+        system("pkill -9 mpg321");
+        exit(1);
+    }
     int create_users_folder() {
     const char *folder_name = "users";
     struct stat st = {0};

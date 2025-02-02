@@ -8,4 +8,5 @@
     int file_exists(const char *filename);
     void new_user_write_file(char*name,char*email,char*pass);
     void new_guest_write_file(char*name);
+    void Exit_Program();
 #endif 
