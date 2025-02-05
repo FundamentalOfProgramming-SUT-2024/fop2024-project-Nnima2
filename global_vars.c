@@ -4,3 +4,5 @@
 int guest = 0;
 char username[MAX_USERNAME_LEN];
 char *  username_ptr = username;
+int state = 0;
+int main();

@@ -8,5 +8,7 @@
     int file_exists(const char *filename);
     void new_user_write_file(char*name,char*email,char*pass);
     void new_guest_write_file(char*name);
-    void Exit_Program();
+    void Exit_Program(int code,char * massege);
+    void play_music(const char *file);
+    void stop_music();
 #endif 

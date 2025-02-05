@@ -15,10 +15,10 @@
 
 int Init_Menus();
 
-char final_username[MAX_USER_PASS];
+char final_username[MAX_USERNAME_LEN];
 
 
-
+int main();
 
 int Setup_First_Menu() // returns 1 if already has an acount -->(login =1,sign up = 0)
 {
@@ -376,7 +376,7 @@ int Setup_Register_Page()
                 strcpy(final_username, name);
                 wclear(win);
                 clear();
-                Init_Menus(username_ptr);
+                main();
                 return 0;//back normally
             }
             break;
@@ -386,7 +386,7 @@ int Setup_Register_Page()
         {
             wclear(win);
             clear();
-            Init_Menus(username_ptr);
+            main();
             return 0;//back normally
         }
         else if (ch == KEY_DOWN || ch == KEY_UP || ch == 9 /*Tab*/) // switch betweencontrols
@@ -804,6 +804,7 @@ int Setup_Login_Page()// return 2 for guest / 1 for user / -1 for error 0 for ex
 
                         sprintf(final_username,"Guest_%s",name);
                         new_guest_write_file(name);
+                        guest = 1;
                         Print_Error1("Registration Successfull,prees any key to go to next page");
                         getch();
                         delwin(win);
@@ -832,17 +833,18 @@ int Setup_Login_Page()// return 2 for guest / 1 for user / -1 for error 0 for ex
                     {
                         FILE *user_file = fopen(filename, "r");
                         char line[MAX_FILE_LINE];
-                        char real_password[MAX_USER_PASS];
+                        char real_password[MAX_USERNAME_LEN];
                         fgets(line, MAX_FILE_LINE, user_file);
                         fgets(line, MAX_FILE_LINE, user_file);
                         fgets(line, MAX_FILE_LINE, user_file);
                         char *fptr = strchr(line, ':');
                         fptr++;
-                        strncpy(real_password, fptr, MAX_USER_PASS);
+                        strncpy(real_password, fptr, MAX_USERNAME_LEN);
                         real_password[strcspn(real_password, "\n")] = '\0';
                         if (strcmp(real_password, password) == 0)
                         {
                             strcpy(final_username, name);
+                            guest = 0;
                             Print_Error1("Login Successfull.Press anykey to go to next page;");
                             getch();
                             delwin(win);
@@ -872,7 +874,7 @@ int Setup_Login_Page()// return 2 for guest / 1 for user / -1 for error 0 for ex
                 strcpy(final_username, name);
                 wclear(win);
                 clear();
-                Init_Menus(username_ptr);
+                main();
                 return 0;
             }
             break;
@@ -882,7 +884,7 @@ int Setup_Login_Page()// return 2 for guest / 1 for user / -1 for error 0 for ex
         {
             wclear(win);
             clear();
-            Init_Menus(username_ptr);
+            main();
             return 0;
         }
         else if (ch == KEY_DOWN || ch == KEY_UP || ch == 9 /*Tab*/) // switch betweencontrols
@@ -1134,9 +1136,9 @@ int Init_Menus()
         }
         else if(login == 1||login == 2)
         {
-            int guest = login -1;
             endwin();
             strcpy(username,final_username);
+
             return 0;
         }
     }
@@ -1150,7 +1152,6 @@ int Init_Menus()
         }
         else
         {
-            int guest = 0;
             clear();
             strcpy(username,final_username);
             return 0;
