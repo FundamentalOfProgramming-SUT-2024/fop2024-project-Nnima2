@@ -40,7 +40,7 @@ int main() {
 
 //         int gold_collected = 4000 - 100*i;
 //         scoreboard[i].gold_collected = gold_collected;
-        
+        #pragma region make scoreboard
 //         int score = 6000-100*i;
 //         scoreboard[i].score = score;
 
@@ -52,4 +52,25 @@ int main() {
 
 //     }
 //     write_scoreboard(scoreboard,20);
+// }
+
+
+// #include <ncurses.h>
+// #include <wchar.h>
+// #include <locale.h>
+
+// int main() {
+//     setlocale(LC_ALL, ""); // فعال کردن پشتیبانی از UTF-8 در ncurses
+//     initscr();
+//     noecho();
+//     curs_set(FALSE);
+
+#pragma region unicode test 2 
+//     wchar_t *msg = L"🏰 این یک تست است 🐉";
+//     mvprintw(5, 5, "Hello%lslets go", msg);  // %ls برای نمایش wchar_t*
+    
+//     refresh();
+//     getch();
+//     endwin();
+//     return 0;
 // }
