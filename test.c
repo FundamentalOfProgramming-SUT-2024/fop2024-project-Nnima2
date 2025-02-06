@@ -66,11 +66,38 @@ int main() {
 //     curs_set(FALSE);
 
 #pragma region unicode test 2 
-//     wchar_t *msg = L"🏰 این یک تست است 🐉";
+//     wchar_t *msg = L" 🏰این یک تست است 🐉";
+
 //     mvprintw(5, 5, "Hello%lslets go", msg);  // %ls برای نمایش wchar_t*
     
 //     refresh();
 //     getch();
 //     endwin();
+//     return 0;
+// }
+
+// #include <ncurses.h>
+// #include <wchar.h>
+// #include <locale.h>
+
+
+// int main() {
+//     setlocale(LC_ALL, ""); 
+
+//     initscr(); 
+//     noecho();
+//     curs_set(FALSE);
+
+//     wchar_t emoji = L'😀';
+//     wchar_t emojistr[2];
+//     emojistr[0] = emoji;
+//     emojistr[1] = L'\0';
+
+//     mvaddwstr(10,10, emojistr);
+
+//     refresh();
+//     getch();
+//     endwin();
+
 //     return 0;
 // }
