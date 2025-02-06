@@ -18,7 +18,6 @@ int main()
     //Init_Menus();
 
     strcpy(username, "Not_Nima2");
-
     while(state != -1)
     {
         if(state==0)
@@ -28,8 +27,6 @@ int main()
         if(state ==1)
         {
             new_game();
-            break;
-            Exit_Program(0,NULL);
         }
         if(state ==2)
         {
@@ -37,5 +34,6 @@ int main()
         }
     }
     endwin();
+    Exit_Program(0,NULL);
     return 0;
 }
