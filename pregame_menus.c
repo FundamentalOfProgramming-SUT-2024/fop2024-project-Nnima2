@@ -39,7 +39,6 @@ void save_settings(const char *username, Settings *settings)
 {
     char filepath[256];
     snprintf(filepath, sizeof(filepath), "%s%s.bin", SETTINGS_DIR, username);
-
     FILE *file = fopen(filepath, "wb");
     if (!file)
     {
@@ -241,6 +240,7 @@ void show_settings()
             }
             break;
         case 27:
+
             save_settings(username, &settings);
             clear();
             Open_Pregame_Menus();

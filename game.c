@@ -720,6 +720,7 @@ void massage(char *x)
 
     wattron(msg_win, COLOR_PAIR(2));
     box(msg_win, 0, 0);
+    mvwprintw(msg_win, 0, 2, " Message ");
     wattroff(msg_win, COLOR_PAIR(2));
     wrefresh(msg_win);
     mvwprintw(msg_win, 2, 2, x);
@@ -1048,6 +1049,7 @@ int new_game()
     Exit_Program(0, NULL);
     return 0;
 }
+
 
 void init_windows()
 {
