@@ -632,6 +632,7 @@ void generate_map()
         // new_room.id = floor * 10 + room_count;
         new_room.door_count = 0;
         new_room.has_connection = FALSE;
+        new_room.visited = FALSE;
         add_room(new_room);
 
         rooms[room_count] = new_room;
@@ -639,6 +640,10 @@ void generate_map()
     }
 }
 
+
+wchar_t hero = L'☻';
+int hero_color = 2;
+int emergancy_m = 0;
 #pragma region draw🏰
 void draw_map(WINDOW *win, int mh, int mw)
 {
@@ -646,12 +651,52 @@ void draw_map(WINDOW *win, int mh, int mw)
     {
         for (int x = 0; x < mw; x++)
         {
+            int in_room = -1;
+            for (int i = 0; i < num_room; i++)
+            {
+                if (
+                    (x >= rooms[i].x && x <= rooms[i].x + rooms[i].width) &&
+                    (y >= rooms[i].y && y <= rooms[i].y + rooms[i].height))
+                {
+                    in_room = i;
+                    break;
+                }
+            }
+            if (in_room != -1)
+            {
+                if (!rooms[in_room].visited && !emergancy_m)
+                    wattron(map_win, A_INVIS);
+            }
+            else
+            {
+                wattroff(map_win, A_INVIS);
+            }
+
+            if (map[y][x] == L'#' && map_see[y][x] == 0)
+            {
+                if (!emergancy_m)
+                {
+                    wattron(map_win, A_INVIS);
+                }
+            }
+            if (map[y][x] == hero)
+            {
+                wattron(map_win, COLOR_PAIR(hero_color));
+            }
+
+            if (emergancy_m)
+            {
+                wattroff(map_win, A_INVIS);
+            }
+
             wchar_t str[2];
             str[0] = map[y][x];
             str[1] = L'\0';
             wmove(win, y, x);
             waddwstr(win, str);
-           
+            wattroff(map_win, A_INVIS);
+            wattroff(map_win, COLOR_PAIR(hero_color));
+            wrefresh(map_win);
         }
     }
     wrefresh(win);
@@ -666,16 +711,16 @@ void drawch(WINDOW *win, int y, int x, wchar_t ch)
     waddwstr(win, str);
     wrefresh(win);
 }
+point current_cordination;
 
-wchar_t hero = L'☻';
 
-int hero_color = 3;
 void massage(char *x)
 {
     wclear(msg_win);
-    wattron(msg_win,COLOR_PAIR(2));
+
+    wattron(msg_win, COLOR_PAIR(2));
     box(msg_win, 0, 0);
-    wattroff(msg_win,COLOR_PAIR(2));
+    wattroff(msg_win, COLOR_PAIR(2));
     wrefresh(msg_win);
     mvwprintw(msg_win, 2, 2, x);
     wrefresh(msg_win);
@@ -691,10 +736,31 @@ int move_charechter(int y1, int x1, int y2, int x2, wchar_t *under_char)
         // add color to charecter
         // atron()
 
+        int in_room = -1;
+        for (int i = 0; i < num_room; i++)
+        {
+            if (
+                (x2 >= rooms[i].x && x2 <= rooms[i].x + rooms[i].width) &&
+                (y2 >= rooms[i].y && y2 <= rooms[i].y + rooms[i].height))
+            {
+                in_room = i;
+                break;
+            }
+        }
+
+        if (rooms[in_room].visited == FALSE)
+        {
+            rooms[in_room].visited = TRUE;
+            draw_map(map_win, map_height, map_width);
+        }
+
+        drawch(map_win, y1, x1, map[y1][x1]);
+
         wattron(map_win, COLOR_PAIR(hero_color));
         drawch(map_win, y2, x2, hero);
         wattroff(map_win, COLOR_PAIR(hero_color));
-        drawch(map_win, y1, x1, map[y1][x1]);
+
+        map_see[y2][x2] = 1;
         return 1;
     }
     else
@@ -729,8 +795,15 @@ int new_game()
     map_height = getmaxy(stdscr) - MSG_HEIGHT - 2, map_width = getmaxx(stdscr) - STATUS_WIDTH - 2;
 
 #pragma region newgame
-    rooms[0].visited =TRUE;
     point spawn_cord;
+    rooms[0].visited = TRUE;
+    for (int i = 0; i < MAX_MAP_SIZE; i++)
+    {
+        for (int j = 0; j < MAX_MAP_SIZE; j++)
+        {
+            map_see[j][i] = 0;
+        }
+    }
     spawn_cord.x = rooms[0].x + 1 + rand() % (rooms[0].width - 2);
     spawn_cord.y = rooms[0].y + 1 + rand() % (rooms[0].height - 2);
 
@@ -826,118 +899,134 @@ int new_game()
             }
         }
         break;
+        case 'm':
+        {
+            if (emergancy_m == 0)
+            {
+                emergancy_m = 1;
+                massage("m is on");
+                draw_map(map_win, map_height, map_width);
+            }
+            else
+            {
+                emergancy_m = 0;
+                massage("m is off");
+                draw_map(map_win, map_height, map_width);
+            }
+        }
+        break;
         case 'f':
         {
             massage("In wich direction?");
             ch = getch();
             bool can_move = 1;
-            bool fast_move= 0;
+            bool fast_move = 0;
             do
             {
                 switch (ch)
                 {
-                    case 'q':
+                case 'q':
+                {
+                    int moved = move_charechter(y, x, y - 1, x - 1, &under_char);
+                    if (moved)
                     {
-                        int moved = move_charechter(y, x, y - 1, x - 1, &under_char);
-                        if (moved)
-                        {
-                            x--;
-                            y--;
-                            fast_move = TRUE;
-                        }
-                        can_move = moved;
+                        x--;
+                        y--;
+                        fast_move = TRUE;
                     }
-                    break;
-                    case 'w':
+                    can_move = moved;
+                }
+                break;
+                case 'w':
+                {
+                    int moved = move_charechter(y, x, y - 1, x, &under_char);
+                    if (moved)
                     {
-                        int moved = move_charechter(y, x, y - 1, x, &under_char);
-                        if (moved)
-                        {
-                            y--;
-                            fast_move = TRUE;
-                        }
-                        can_move = moved;
+                        y--;
+                        fast_move = TRUE;
                     }
-                    break;
-                    case 'e':
+                    can_move = moved;
+                }
+                break;
+                case 'e':
+                {
+                    int moved = move_charechter(y, x, y - 1, x + 1, &under_char);
+                    if (moved)
                     {
-                        int moved = move_charechter(y, x, y - 1, x + 1, &under_char);
-                        if (moved)
-                        {
-                            x++;
-                            y--;
-                            fast_move = TRUE;
-                        }
-                        can_move = moved;
+                        x++;
+                        y--;
+                        fast_move = TRUE;
                     }
-                    break;
-                    case 'a':
+                    can_move = moved;
+                }
+                break;
+                case 'a':
+                {
+                    int moved = move_charechter(y, x, y, x - 1, &under_char);
+                    if (moved)
                     {
-                        int moved = move_charechter(y, x, y, x - 1, &under_char);
-                        if (moved)
-                        {
-                            x--;
-                            fast_move = TRUE;
-                        }
-                        can_move = moved;
+                        x--;
+                        fast_move = TRUE;
                     }
-                    break;
-                    case 's':
+                    can_move = moved;
+                }
+                break;
+                case 's':
+                {
+                    int moved = move_charechter(y, x, y + 1, x, &under_char);
+                    if (moved)
                     {
-                        int moved = move_charechter(y, x, y + 1, x, &under_char);
-                        if (moved)
-                        {
-                            y++;
-                            fast_move = TRUE;
-                        }
-                        can_move = moved;
+                        y++;
+                        fast_move = TRUE;
                     }
-                    break;
-                    case 'd':
+                    can_move = moved;
+                }
+                break;
+                case 'd':
+                {
+                    int moved = move_charechter(y, x, y, x + 1, &under_char);
+                    if (moved)
                     {
-                        int moved = move_charechter(y, x, y, x + 1, &under_char);
-                        if (moved)
-                        {
-                            x++;
-                            fast_move = TRUE;
-                        }
-                        can_move = moved;
+                        x++;
+                        fast_move = TRUE;
                     }
-                    break;
-                    case 'z':
+                    can_move = moved;
+                }
+                break;
+                case 'z':
+                {
+                    int moved = move_charechter(y, x, y + 1, x - 1, &under_char);
+                    if (moved)
                     {
-                        int moved = move_charechter(y, x, y + 1, x - 1, &under_char);
-                        if (moved)
-                        {
-                            x--;
-                            y++;
-                            fast_move = TRUE;
-                        }
-                        can_move = moved;
+                        x--;
+                        y++;
+                        fast_move = TRUE;
                     }
-                    break;
-                    case 'c':
+                    can_move = moved;
+                }
+                break;
+                case 'c':
+                {
+                    int moved = move_charechter(y, x, y + 1, x + 1, &under_char);
+                    if (moved)
                     {
-                        int moved = move_charechter(y, x, y + 1, x + 1, &under_char);
-                        if (moved)
-                        {
-                            x++;
-                            y++;
-                            fast_move = TRUE;
-                        }
-                        can_move = moved;
+                        x++;
+                        y++;
+                        fast_move = TRUE;
                     }
-                    break;
-                    default:
-                    {
-                        massage("wrong direction");
-                        can_move = FALSE;
-                    }
-                    break;
+                    can_move = moved;
+                }
+                break;
+                default:
+                {
+                    massage("wrong direction");
+                    can_move = FALSE;
+                }
+                break;
                 }
             } while (can_move);
 
-            if(fast_move)
+            if (fast_move)
                 wclear(msg_win);
             else
                 massage("can not move in this direction");
@@ -950,6 +1039,9 @@ int new_game()
         }
         break;
         }
+
+        current_cordination.x = x;
+        current_cordination.y = y;
     } while (ch != 27);
     refresh();
     endwin();

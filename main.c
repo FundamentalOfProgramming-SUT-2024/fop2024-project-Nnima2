@@ -15,7 +15,7 @@ int main()
     char * default_music = "music/music_1.mp3";
     play_music(default_music);
 
-    //Init_Menus();
+    Init_Menus();
 
     strcpy(username, "Not_Nima2");
     while(state != -1)
